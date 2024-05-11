@@ -4,138 +4,7 @@
 
 Nesta atividade iremo iniciar o consumo da API `TheMovieDB`. 
 
-## Parte I - UI
-
-Nesta parte iremos criar a Interface Gráfica do App utilizando o `FutureBuilder` para a construção das telas, é uma alternativa nativa para construção assincrona de componentes de UI.
-
-> Antes de iniciar, inclua as dependencias abaixo.
-
-```dart
-flutter pub add dio provider json_annotation flutter_dotenv
-```
-
-```dart
-dart pub add --dev json_serializable build_runner 
-```
-
-1. Crie a classe `/lib/App.dart` e inclua o trecho abaixo.
-
-```dart
-class App extends StatelessWidget {
-  const App({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Lançamentos',
-      theme: ThemeData(
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          foregroundColor: Colors.white,
-          backgroundColor: Color.fromRGBO(3, 37, 65, 1.0),
-        ),
-        colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color.fromRGBO(3, 37, 65, 1.0))
-            .copyWith(
-          onPrimaryContainer: Colors.white,
-          primaryContainer: const Color.fromRGBO(27, 210, 175, 1.0),
-        ),
-      ),
-      home: const HomePage(title: 'TheMovieDB'),
-    );
-  }
-}
-```
-
-2. No diretório `/lib/pages` crie o arquivo `home_page.dart` com o código abaixo.
-
-```dart
-class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-
-      /** 
-      * O FutureBuilder é um widget que constroi elemento de UI com base em uma requisição assincrona.
-      * A propriedade future faz com que o widget consiga monitorar o andamento da requisição
-      */
-      body: FutureBuilder(
-        future: null, //TODO: Criar providers na Parte II. è neste ponto que executaremos uma requisição à API TheMovieDB.
-        builder: (context, snapshot) {
-          /** O método builder rebebe como argumento o snapshot(uma imagem instantanea) do estado atual da requisição.
-          * Atraves dele, podemos analidar o status da conexão e o status dos dados recebidos.
-          * Com base nestes status podemos decidir o que vamos exibir na UI; o FutureBuilder controla todo o fluxo.
-          */
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(
-              child: SizedBox(
-                height: 200,
-                width: 200,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-
-          //Aqui coletamos os dados após a conclusão da requisição
-          var data = snapshot.data;
-
-          // Caso não haja dados, exibimos um Widget customizado.
-          if (data?.isEmpty ?? true) {
-            return const Center(
-              child: Card(
-                  child: Padding(
-                padding: EdgeInsets.all(17.0),
-                child: Text(
-                  'Preencha o arquivo .env na raiz do projeto com a API_KEY e TOKEN para que as requisições possam e ser autenticadas corretamente, assim voce poderá consultar sua avaliações de favoritos posteriormente.',
-                  style: TextStyle(
-                    fontSize: 24,
-                  ),
-                ),
-              )),
-            );
-          }
-
-        //Neste trecho já temos os dados com a conclusão da requisição
-        //Neste trecho iremos estruturar uma visualização em forma de Grid para exibir os cartazes dos filmes.
-          return GridView.builder(
-              itemCount: data?.length ?? 0,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                mainAxisSpacing: 4,
-                crossAxisCount: 2,
-                childAspectRatio: 2 / 3,
-                crossAxisSpacing: 4,
-              ),
-              itemBuilder: (context, index) {
-                //Este Widget faz com que uma imagem de fundo seja exibidao durante o carregamento, ela estará np diretório assets neste repositório
-                return FadeInImage(
-                  fadeInCurve: Curves.bounceInOut,
-                  fadeInDuration: const Duration(milliseconds: 500),
-                  //O NetworkImage irá fazer uma requisição e baixar a imagem dos poster.
-                  image: NetworkImage(data![index].getPostPathUrl()),
-                  placeholder: const AssetImage('assets/images/logo.png'),
-                );
-              });
-        },
-      ),
-    );
-  }
-}
-
-```
-
-## Parte II - Dados
+## Parte I - Modelagem de Dados
 
 Nests parte iremos criar as domain classes e os repositórios e serviços para gerenciar o consumo da API TheMovieDB.
 
@@ -336,6 +205,137 @@ class MovieRepositoryImpl extends MovieRepository {
     }
 
     return movies;
+  }
+}
+
+```
+
+## Parte II - UI
+
+Nesta parte iremos criar a Interface Gráfica do App utilizando o `FutureBuilder` para a construção das telas, é uma alternativa nativa para construção assincrona de componentes de UI.
+
+> Antes de iniciar, inclua as dependencias abaixo.
+
+```dart
+flutter pub add dio provider json_annotation flutter_dotenv
+```
+
+```dart
+dart pub add --dev json_serializable build_runner 
+```
+
+1. Crie a classe `/lib/app.dart` e inclua o trecho abaixo.
+
+```dart
+class App extends StatelessWidget {
+  const App({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Lançamentos',
+      theme: ThemeData(
+        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          foregroundColor: Colors.white,
+          backgroundColor: Color.fromRGBO(3, 37, 65, 1.0),
+        ),
+        colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color.fromRGBO(3, 37, 65, 1.0))
+            .copyWith(
+          onPrimaryContainer: Colors.white,
+          primaryContainer: const Color.fromRGBO(27, 210, 175, 1.0),
+        ),
+      ),
+      home: const HomePage(title: 'TheMovieDB'),
+    );
+  }
+}
+```
+
+2. No diretório `/lib/pages` crie o arquivo `home_page.dart` com o código abaixo.
+
+```dart
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+
+      /** 
+      * O FutureBuilder é um widget que constroi elemento de UI com base em uma requisição assincrona.
+      * A propriedade future faz com que o widget consiga monitorar o andamento da requisição
+      */
+      body: FutureBuilder(
+        future: context.read<MovieRepositoryImpl>().getUpcoming(), 
+        builder: (context, snapshot) {
+          /** O método builder rebebe como argumento o snapshot(uma imagem instantanea) do estado atual da requisição.
+          * Atraves dele, podemos analidar o status da conexão e o status dos dados recebidos.
+          * Com base nestes status podemos decidir o que vamos exibir na UI; o FutureBuilder controla todo o fluxo.
+          */
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(
+              child: SizedBox(
+                height: 200,
+                width: 200,
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          //Aqui coletamos os dados após a conclusão da requisição
+          var data = snapshot.data;
+
+          // Caso não haja dados, exibimos um Widget customizado.
+          if (data?.isEmpty ?? true) {
+            return const Center(
+              child: Card(
+                  child: Padding(
+                padding: EdgeInsets.all(17.0),
+                child: Text(
+                  'Preencha o arquivo .env na raiz do projeto com a API_KEY e TOKEN para que as requisições possam e ser autenticadas corretamente, assim voce poderá consultar sua avaliações de favoritos posteriormente.',
+                  style: TextStyle(
+                    fontSize: 24,
+                  ),
+                ),
+              )),
+            );
+          }
+
+        //Neste trecho já temos os dados com a conclusão da requisição
+        //Neste trecho iremos estruturar uma visualização em forma de Grid para exibir os cartazes dos filmes.
+          return GridView.builder(
+              itemCount: data?.length ?? 0,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                mainAxisSpacing: 4,
+                crossAxisCount: 2,
+                childAspectRatio: 2 / 3,
+                crossAxisSpacing: 4,
+              ),
+              itemBuilder: (context, index) {
+                //Este Widget faz com que uma imagem de fundo seja exibidao durante o carregamento, ela estará np diretório assets neste repositório
+                return FadeInImage(
+                  fadeInCurve: Curves.bounceInOut,
+                  fadeInDuration: const Duration(milliseconds: 500),
+                  //O NetworkImage irá fazer uma requisição e baixar a imagem dos poster.
+                  image: NetworkImage(data![index].getPostPathUrl()),
+                  placeholder: const AssetImage('assets/images/logo.png'),
+                );
+              });
+        },
+      ),
+    );
   }
 }
 
