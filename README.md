@@ -4,6 +4,10 @@
 
 Nesta atividade iremo iniciar o consumo da API `TheMovieDB`. 
 
+Para que você conclua esta atividade é necessário que voce crie um cadastro no TheMovieDB para conseguri as credenciais de acesso para as requisições REST.
+
+Segue o link da documentação da [API](https://developer.themoviedb.org/v4/reference/intro/getting-started)
+
 ## Parte I - Modelagem de Dados
 
 Nests parte iremos criar as domain classes e os repositórios e serviços para gerenciar o consumo da API TheMovieDB.
