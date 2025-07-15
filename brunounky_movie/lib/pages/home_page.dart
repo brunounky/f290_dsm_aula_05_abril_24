@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../model/movie_model.dart';
 import '../repositories/movie_repository_impl.dart';
+import './movie_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -18,7 +20,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: FutureBuilder(
+      body: FutureBuilder<List<MovieModel>>(
         future: context.read<MovieRepositoryImpl>().getUpcoming(),
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -31,6 +33,10 @@ class _HomePageState extends State<HomePage> {
             );
           }
 
+          if (snapshot.hasError) {
+            return const Center(child: Text("Erro ao carregar os filmes."));
+          }
+
           var data = snapshot.data;
 
           if (data?.isEmpty ?? true) {
@@ -39,7 +45,8 @@ class _HomePageState extends State<HomePage> {
                   child: Padding(
                 padding: EdgeInsets.all(17.0),
                 child: Text(
-                  'Preencha o arquivo .env na raiz do projeto com a API_KEY e TOKEN para que as requisições possam ser autenticadas corretamente.',
+                  'Nenhum filme encontrado ou erro ao carregar. Verifique suas chaves no arquivo .env.',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,
                   ),
@@ -47,7 +54,7 @@ class _HomePageState extends State<HomePage> {
               )),
             );
           }
-          
+
           return GridView.builder(
               itemCount: data?.length ?? 0,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -57,11 +64,26 @@ class _HomePageState extends State<HomePage> {
                 crossAxisSpacing: 4,
               ),
               itemBuilder: (context, index) {
-                return FadeInImage(
-                  fadeInCurve: Curves.bounceInOut,
-                  fadeInDuration: const Duration(milliseconds: 500),
-                  image: NetworkImage(data![index].getPostPathUrl()),
-                  placeholder: const AssetImage('assets/images/logo.png'),
+                final movie = data![index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MovieDetailPage(movie: movie),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: FadeInImage(
+                      fadeInCurve: Curves.bounceInOut,
+                      fadeInDuration: const Duration(milliseconds: 500),
+                      image: NetworkImage(movie.getPostPathUrl()),
+                      placeholder: const AssetImage('assets/images/logo.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 );
               });
         },
